@@ -52,7 +52,6 @@ import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
-import javafx.event.Event;
 import javafx.event.EventHandler;
 import javafx.event.EventType;
 import javafx.geometry.Insets;
@@ -74,7 +73,6 @@ import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
 import javafx.stage.Modality;
-import javafx.stage.Screen;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 import javafx.stage.Window;
@@ -454,7 +452,7 @@ public class Dialogs {
         WARNING(DialogOptions.OK, "warning48.image") {
             @Override public String getDefaultMasthead() { return "Warning"; }
         },
-        CONFIRMATION(DialogOptions.YES_NO_CANCEL, "confirm48.image") {
+        CONFIRMATION(DialogOptions.YES_NO, "confirm48.image") {
             @Override public String getDefaultMasthead() { return "Select an Option"; }
         },
         INPUT(DialogOptions.OK_CANCEL, "confirm48.image") {
@@ -1070,9 +1068,6 @@ public class Dialogs {
     private static class FXDialog extends Stage {
         private BorderPane root;
         private RootPane decoratedRoot;
-        private HBox windowBtns;
-        private Button minButton;
-        private Button maxButton;
         private Rectangle resizeCorner;
         private double mouseDragOffsetX = 0;
         private double mouseDragOffsetY = 0;
@@ -1104,13 +1099,6 @@ public class Dialogs {
             resizableProperty().addListener(new InvalidationListener() {
                 @Override public void invalidated(Observable valueModel) {
                     resizeCorner.setVisible(isResizable());
-                    maxButton.setVisible(isResizable());
-
-                    if (isResizable()) {
-                        windowBtns.getChildren().add(1, maxButton);
-                    } else {
-                        windowBtns.getChildren().remove(maxButton);
-                    }
                 }
             });
 
@@ -1190,57 +1178,7 @@ public class Dialogs {
             Region spacer = new Region();
             HBox.setHgrow(spacer, Priority.ALWAYS);
 
-            // add close min max
-            Button closeButton = createWindowButton("close");
-            closeButton.setOnAction(new EventHandler() {
-                @Override public void handle(Event event) {
-                    FXDialog.this.hide();
-                }
-            });
-            minButton = createWindowButton("minimize");
-            minButton.setOnAction(new EventHandler() {
-                @Override public void handle(Event event) {
-                    setIconified(!isIconified());
-                }
-            });
-
-            maxButton = createWindowButton("maximize");
-            maxButton.setOnAction(new EventHandler() {
-                private double restoreX;
-                private double restoreY;
-                private double restoreW;
-                private double restoreH;
-
-                @Override public void handle(Event event) {
-                    Screen screen = Screen.getPrimary(); // todo something more sensible
-                    double minX = screen.getVisualBounds().getMinX();
-                    double minY = screen.getVisualBounds().getMinY();
-                    double maxW = screen.getVisualBounds().getWidth();
-                    double maxH = screen.getVisualBounds().getHeight();
-
-                    if (restoreW == 0 || getX() != minX || getY() != minY || getWidth() != maxW || getHeight() != maxH) {
-                        restoreX = getX();
-                        restoreY = getY();
-                        restoreW = getWidth();
-                        restoreH = getHeight();
-                        setX(minX);
-                        setY(minY);
-                        setWidth(maxW);
-                        setHeight(maxH);
-                    } else {
-                        setX(restoreX);
-                        setY(restoreY);
-                        setWidth(restoreW);
-                        setHeight(restoreH);
-                    }
-                }
-            });
-
-            windowBtns = new HBox(3);
-            windowBtns.getStyleClass().add("window-buttons");
-            windowBtns.getChildren().addAll(minButton, maxButton, closeButton);
-
-            toolBar.getItems().addAll(titleLabel, spacer, windowBtns);
+            toolBar.getItems().addAll(titleLabel, spacer);
             root.setTop(toolBar);
 
             resizeCorner = new Rectangle(10, 10);
